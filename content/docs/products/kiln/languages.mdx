@@ -9,14 +9,14 @@ and it picks the right one automatically.
 | Language / type | Detected from |
 | --------------- | ------------- |
 | Node.js | `package.json` |
-| Deno | `deno.json` |
+| Deno | `deno.json`, `deno.jsonc` |
 | Python | `pyproject.toml`, `requirements.txt` |
 | Ruby | `Gemfile` |
 | PHP | `composer.json` |
 | Go | `go.mod` |
 | Rust | `Cargo.toml` |
-| Java | `pom.xml` |
-| .NET | `.csproj` |
+| Java | `pom.xml` (Maven), `build.gradle`, `build.gradle.kts` (Gradle) |
+| .NET | `.csproj`, `.fsproj`, `.sln` |
 | Elixir | `mix.exs` |
 | Gleam | `gleam.toml` |
 | C++ | `CMakeLists.txt`, `Makefile` |

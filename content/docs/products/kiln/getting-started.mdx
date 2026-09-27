@@ -5,7 +5,17 @@ description: Install Kiln and build your first image
 
 ## Install
 
-Kiln is distributed as a single binary. Install it with Homebrew:
+Kiln is a single, self-contained binary. Download the build for your platform
+from the [GitHub releases page](https://github.com/omnidotdev/kiln/releases)
+(Linux and macOS, x86_64 and arm64), then extract it onto your `PATH`:
+
+```bash
+# example: Linux x86_64
+curl -fsSL https://github.com/omnidotdev/kiln/releases/latest/download/kiln-x86_64-unknown-linux-gnu.tar.gz \
+  | tar -xz && sudo mv kiln /usr/local/bin/
+```
+
+On macOS and Linux you can also install it with Homebrew:
 
 ```bash
 brew install omnidotdev/tap/kiln
@@ -36,6 +46,9 @@ From the root of a project (Kiln detects the language automatically):
 # See what Kiln detects
 kiln detect --path .
 
+# Summarize the detected provider, base images, start command, and port
+kiln info --path .
+
 # Preview the build plan without building anything
 kiln plan --path .
 
@@ -43,6 +56,11 @@ kiln plan --path .
 # with BUILDKIT_HOST or --buildkit-addr)
 kiln build --path . --dest registry.example/my-app:latest
 ```
+
+Kiln is zero-config, but you can pin what detection cannot infer (runtime
+version, start command, env, and more) with a `kiln.json`; see
+[configuration](/products/kiln/configuration). `kiln schema` prints the config
+schema, and `kiln completion <shell>` generates a shell completion script.
 
 `kiln build` can also build straight from a Git source:
 
