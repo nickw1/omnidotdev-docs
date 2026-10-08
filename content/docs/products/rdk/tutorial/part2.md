@@ -3,13 +3,13 @@ title: "Part 2: Connecting to a Server"
 description: Extend the app to fetch points of interest from a server API instead of hard-coding them.
 ---
 
-In Part 2 we will start to make our app a bit more useful by connecting to a server and retrieving some hard-coded POIs from an API. For now, these will not be stored in a database, but we will come back to that in Part 3.
+Part 2 makes the app more useful by connecting to a server and retrieving hard-coded POIs from an API. These are not yet stored in a database; Part 3 adds that.
 
-We will use [Elysia](https://elysiajs.com), the Omni standard server framework, running on [Bun](https://bun.sh). Bun executes TypeScript directly, so no separate compile step or TypeScript loader is needed. In development we put Elysia in front of Vite's dev server: a single server on port 3000 serves both the API and, by proxying everything else to Vite, the app itself (with hot module reloading intact).
+The server uses [Elysia](https://elysiajs.com), the Omni standard server framework, running on [Bun](https://bun.sh). Bun executes TypeScript directly, so no separate compile step or TypeScript loader is needed. In development, Elysia sits in front of Vite's dev server: a single server on port 3000 serves both the API and, by proxying everything else to Vite, the app itself (with hot module reloading intact).
 
 ## Setting up the project
 
-We need two dependencies: `elysia` itself, and `@elysiajs/static` to serve the built app in production. We also add `concurrently` as a dev dependency so a single command can run the Vite dev server and the Elysia server together.
+Two dependencies are required: `elysia` itself, and `@elysiajs/static` to serve the built app in production. Add `concurrently` as a dev dependency so a single command can run the Vite dev server and the Elysia server together.
 
 ```console
 bun add elysia @elysiajs/static
@@ -40,7 +40,7 @@ Ensure you add `server.ts` to the list of files to be type-checked:
 
 ### Updating the Vite config
 
-Because the browser now talks to our Elysia server (port 3000), which proxies through to Vite, Vite's hot-module-reload client needs to be told to connect straight to Vite's own port. Update `vite.config.mjs`:
+Because the browser now talks to the Elysia server (port 3000), which proxies through to Vite, Vite's hot-module-reload client must connect straight to Vite's own port. Update `vite.config.mjs`:
 
 ```javascript
 import { defineConfig } from 'vite';
@@ -56,7 +56,7 @@ export default defineConfig({
 });
 ```
 
-## Coding our server
+## Coding the server
 
 Here is a simple Elysia server which will deliver JSON containing four hard-coded points of interest in response to the `/map` endpoint: 
 
@@ -117,13 +117,13 @@ app.listen(PORT, () => {
 });
 ```
 
-We set up a `/map` endpoint and return the POIs: Elysia serialises the array to JSON for us. The server listens on port 3000. In development, any request that is not `/map` is proxied to Vite's dev server, so this single Elysia server delivers both the API and the app; in production the built app is served from `dist` with `@elysiajs/static`.
+The `/map` endpoint returns the POIs, which Elysia serialises to JSON. The server listens on port 3000. In development, any request that is not `/map` is proxied to Vite's dev server, so this single Elysia server delivers both the API and the app; in production the built app is served from `dist` with `@elysiajs/static`.
 
-For the front end, rather than using boxes we'll make it a bit more interesting by creating a simple "model" resembling a typical "pushpin" marker. It's a bit rough and ready but it'll do to illustrate the concept. Note how it's a compound of a cone (for the marker's base), a sphere (for the marker's head) and a smaller black sphere (for the "dot").
+On the front end, instead of plain boxes, a simple "model" resembling a pushpin marker illustrates the concept. It is a compound of a cone (the marker's base), a sphere (the marker's head), and a smaller black sphere (the "dot").
 
 Save this in a file `marker.tsx` inside a directory `basicModels`. 
 
-You should be able to get an idea of what is going on if you are familiar with three.js. Each component in React Three Fiber is equivalent to an object in three.js, feel free to read more on the [React Three Fiber docs](https://r3f.docs.pmnd.rs/). In particular, note that the `args` prop of geometries is an array containing the normal arguments to a three.js `Geometry` object.
+The structure should be clear to anyone familiar with three.js. Each React Three Fiber component is equivalent to a three.js object; see the [React Three Fiber docs](https://r3f.docs.pmnd.rs/) for more detail. Note that the `args` prop of a geometry is an array containing the usual arguments to the corresponding three.js `Geometry` object.
 
 ```tsx
 
@@ -206,7 +206,7 @@ export default function App() {
 
 This code uses an effect to fetch the POIs from the server when the component first loads: they are then stored in state and rendered.
 
-Note also that we now have added ambient and a directional light: if you look at the marker, it uses `MeshStandardMaterial` which is affected by lighting.
+Note the newly added ambient and directional lights: the marker uses `meshStandardMaterial`, which is affected by lighting.
 
 ### Run it!
 

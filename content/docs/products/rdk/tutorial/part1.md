@@ -3,11 +3,11 @@ title: "Part 1: Hello World"
 description: Set up an RDK project and render your first location-based AR object, a red cube at a fixed latitude and longitude.
 ---
 
-In part 1 we will cover the absolute basics of an RDK app by creating the "Hello World" of location-based augmented reality: a red cube positioned at a specific latitude and longitude. The tutorial will use TypeScript, and Vite as a development server and bundler. You should have some basic knowledge of TypeScript and React as well as [three.js](https://threejs.org), including, for example, familiarity with the concept of meshes, geometries and materials.
+Part 1 covers the basics of an RDK app by building a minimal location-based augmented reality scene: a red cube positioned at a specific latitude and longitude. The tutorial uses TypeScript, with Vite as the development server and bundler. It assumes a basic knowledge of TypeScript and React, as well as [three.js](https://threejs.org), including familiarity with meshes, geometries, and materials.
 
 ## Setting up the project
 
-The first thing you will need to do is create a project with the appropriate dependencies. You can use an IDE, such as VS Code, or pure command line. On the console, install the dependencies with `bun`:
+Start by creating a project with the required dependencies. Use an IDE such as VS Code, or the command line. Install the dependencies with `bun`:
 
 ```console
 bun add @omnidotdev/rdk @react-three/fiber locar react react-dom three
@@ -57,11 +57,11 @@ export default defineConfig({
 });
 ```
 
-We are now setup, and can begin development!
+The project is now ready for development.
 
-## Coding the Hello World app
+## Building the Hello World app
 
-We can now create our Hello World app! Firstly, an HTML template for the app to be rendered into:
+Start with an HTML template for the app to render into:
 
 ```html
 <!DOCTYPE html>
@@ -90,7 +90,7 @@ html, body {
 </html>
 ```
 
-then, in your `src` directory, the standard React startup code to create a root node and render some JSX into it (save as `main.tsx`):
+Next, in the `src` directory, add the standard React startup code to create a root node and render JSX into it (save as `main.tsx`):
 
 ```tsx
 import { createRoot } from 'react-dom/client';
@@ -102,7 +102,7 @@ const root = createRoot(
 root.render(<App />);
 ```
 
-Now, the actual `App` component, making use of RDK. Save as `App.tsx` inside the `components` subdirectory within `src`:
+Now the `App` component itself, which uses RDK. Save it as `App.tsx` inside the `components` subdirectory within `src`:
 
 ```tsx
 import { Canvas } from '@react-three/fiber';
@@ -127,17 +127,17 @@ export default function App() {
 }
 ```
 
-Much of this code is from [React Three Fiber](https://r3f.docs.pmnd.rs) - a library which provides a React interface to three.js, allowing you to represent 3D objects as React components. In particular, `Canvas`, `mesh`, `boxGeometry` and `meshBasicMaterial` are all from React Three Fiber. 
+Much of this code comes from [React Three Fiber](https://r3f.docs.pmnd.rs), a library that provides a React interface to three.js, letting you represent 3D objects as React components. `Canvas`, `mesh`, `boxGeometry`, and `meshBasicMaterial` are all from React Three Fiber.
 
-The specific RDK components are `XR`, `GeolocationSession` and `GeolocationAnchor`. `XR` represents an eXtended reality session: RDK can also perform other types of augmented reality such as marker-based. Within our `XR` session, we create a specific `GeolocationSession` allowing us to use location-based AR. Because you might be testing this indoors, we specify a *fake* latitude and longitude to use. If the `fakeLat` and `fakeLon` options are omitted, RDK will attempt to obtain the device's real GPS location.
+The RDK-specific components are `XR`, `GeolocationSession`, and `GeolocationAnchor`. `XR` represents an extended reality session; RDK can also perform other types of augmented reality, such as marker-based. Inside the `XR` session, a `GeolocationSession` enables location-based AR. Because testing often happens indoors, the example supplies a *fake* latitude and longitude. If the `fakeLat` and `fakeLon` options are omitted, RDK attempts to obtain the device's real GPS location.
 
-Within the `GeolocationSession` we then setup a `GeolocationAnchor`. A `GeolocationAnchor` represents a single point object within the world, such as a point of interest. Note how we specify its latitude and longitude.
+Inside the `GeolocationSession` sits a `GeolocationAnchor`. A `GeolocationAnchor` represents a single point in the world, such as a point of interest, positioned by its latitude and longitude.
 
-Within the `GeolocationAnchor` we then specify whatever mesh, or group of meshes, we wish to use to render our point of interest. Here we return to React Three Fiber and setup a `mesh` containing a box geometry and red basic material (basic materials are uninfluenced by lighting - in a real app you might want to setup lights and use a `meshStandardMaterial` instead but more of that later). In other words, a red box will appear, 0.0005 degrees north of our position.
+The `GeolocationAnchor` contains whatever mesh, or group of meshes, renders the point of interest. This example uses a React Three Fiber `mesh` containing a box geometry and a red basic material. (Basic materials are unaffected by lighting; a real app would typically add lights and use a `meshStandardMaterial` instead, covered later.) The result is a red box 0.0005 degrees north of the current position.
 
 ### Run it!
 
-We are using Vite as a development server. To run it, run the appropriate script:
+Vite serves the app in development. Run it with:
 
 ```console
 bun dev

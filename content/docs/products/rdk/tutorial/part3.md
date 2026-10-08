@@ -3,13 +3,13 @@ title: "Part 3: Using a Database"
 description: Serve the tutorial's points of interest from a real SQLite database.
 ---
 
-In Part 3 we will further enhance our app by retrieving the points of interest from an actual, real database. For simplicity we will use [SQLite](https://sqlite.org) though note that a real-world AR app would probably use a geographically-aware database such as [PostgreSQL](https://postgresql.org) with [PostGIS](https://postgis.org).
+Part 3 enhances the app further by retrieving the points of interest from a real database. For simplicity it uses [SQLite](https://sqlite.org), though a production AR app would more likely use a geographically-aware database such as [PostgreSQL](https://postgresql.org) with [PostGIS](https://postgis.org).
 
 ## Setting up the project
 
 SQLite support is built into Bun through the `bun:sqlite` module, so there are no extra dependencies to install for this part.
 
-## Populating our database
+## Populating the database
 
 Use either the `sqlite3` command line tool or a GUI app such as [SQLite Studio](https://sqlitestudio.pl) to add a few points of interest to your database.
  
@@ -32,7 +32,7 @@ INSERT INTO pointsofinterest (name, type, lat, lon) VALUES
  ('Village Stores', 'shop', 51.05, -0.719)
 ```
 
-Here is a modified version of our Elysia server which will deliver JSON containing the data from the database: 
+Here is a modified version of the Elysia server that delivers JSON containing the data from the database:
 
 
 ```typescript
@@ -71,13 +71,13 @@ app.listen(PORT, () => {
 });
 ```
 
-This uses Bun's built-in `bun:sqlite` API to query all points of interest from the database and return them to the client as JSON. If the query fails, we respond with a 500 status and an error message.
+This uses Bun's built-in `bun:sqlite` API to query all points of interest from the database and return them to the client as JSON. If the query fails, the server responds with a 500 status and an error message.
 
 ### Making it more realistic with different "models" for different POI types
 
-So far we're displaying "pushpin" markers for all points of interest. We can enhance the code to display different "models" depending on POI type. The components below are mockups of a teacup, a drinking glass with beverage, a tree (to represent a park) and a building (to represent a shop). They are not sophisticated but will do as a proof of concept.
+So far, every point of interest is a "pushpin" marker. The code can be enhanced to display a different "model" depending on POI type. The components below are mockups of a teacup, a drinking glass, a tree (for a park), and a building (for a shop). They are simple, but serve as a proof of concept.
 
-As an alternative you can of course use pre-built 3D models such as those available at [Sketchfab](https://sketchfab.com), however loading models is out of scope for this tutorial and is left as an exercise for the reader.
+Alternatively, use pre-built 3D models such as those available at [Sketchfab](https://sketchfab.com). Loading models is out of scope for this tutorial and is left as an exercise for the reader.
 
 #### Drinking glass
 
@@ -145,7 +145,7 @@ export default function Tree() {
 ```
 #### Shop
 
-The `Shop` is a bit more complex as we dynamically generate the windows for each face of the building. To this end we need to pass in the POI `id` as a prop, to ensure each window has a unique `key`.
+The `Shop` is more complex because it dynamically generates the windows for each face of the building. It takes the POI `id` as a prop so that each window has a unique `key`.
 
 ```tsx
 interface ShopProps {
@@ -184,7 +184,7 @@ export default function Shop({ id }: ShopProps ) {
 }
 ```
 
-Our `App` is now revised as follows:
+The `App` component is now revised as follows:
 
 
 ```tsx
@@ -254,7 +254,7 @@ export default function App() {
 
 The logic now creates the appropriate component depending on the `type` property from the JSON. 
 
-Try it out - you should now see the POIs loaded from the database and represented by "models" specific to the given POI type! 
+Try it out. The POIs now load from the database, each represented by a model specific to its type.
 
 Here is a screenshot on a real device, facing north:
 

@@ -3,12 +3,12 @@ title: "Part 4: Rendering Roads and Paths"
 description: Render lines such as roads and paths with RDK's GeoLine component.
 ---
 
-In Part 4 we will enhance our app to render lines (e.g. roads and paths) with RDK's `GeoLine` component.
+Part 4 enhances the app to render lines (such as roads and paths) with RDK's `GeoLine` component.
 
 
-## Populating our database
+## Populating the database
 
-First, import some sample ways (roads or paths) into our simple SQLite database. Two tables `ways` (storing the ways themselves) and `way_points` (storing the individual points of each way) are created.
+First, import some sample ways (roads or paths) into the SQLite database. Two tables are created: `ways` (storing the ways themselves) and `way_points` (storing the individual points of each way).
 
 ```sql
 CREATE TABLE ways (id INTEGER PRIMARY KEY AUTOINCREMENT, type STRING);
@@ -20,9 +20,9 @@ INSERT INTO way_points(wayid, lat, lon) VALUES (3, 51.05, -0.719), (3, 51.05, -0
 
 ```
 
-## Enhancing our server
+## Enhancing the server
 
-First we will enhance our server so that it now serves ways as well as points. Some logic is required in the `map` endpoint to ensure that the JSON returned to the client contains an array of ways from the array of individual way points stored in the `way_points` table.
+The server now needs to serve ways as well as points. Some logic in the `/map` endpoint assembles an array of ways from the individual way points stored in the `way_points` table before returning the JSON to the client.
 
 ```typescript
 import { Elysia } from 'elysia';
@@ -91,9 +91,9 @@ export default interface JsonWayPoint {
 }
 ```
 
-## Our front end
+## The front end
 
-We now move to the front end. Our app is becoming larger now, so as a result we will separate out the rendering into a new `GeoDataRenderer` component.
+The app is growing larger, so the rendering is separated out into a new `GeoDataRenderer` component.
 
 First the `App` component:
 
@@ -140,7 +140,7 @@ The JSX now just sets up the basic RDK template with most of the work done in `G
 
 ### GeoDataRenderer
 
-So we will now look at the `GeoDataRenderer` component which actually renders the data.
+Here is the `GeoDataRenderer` component, which actually renders the data.
 
 ```tsx
 
@@ -207,7 +207,7 @@ export default function GeoDataRenderer({ pois, ways } : GeoDataRendererProps) {
 }
 ```
 
-Much of the logic is managing the POIs, as before. The new code involves rendering the ways. Thanks to RDK's `GeoLine` component, this is easy. We just need to map each `Way` to a `GeoLine` component, passing in the way's `coordinates` as well as an appropriate `color` and `lineWidth`. In this example we set the color to yellow. The line width (in Spherical Mercator units, approximately metres but dependent on your latitude) is wider (5) for roads and narrower (2) for paths.
+Much of the logic manages the POIs, as before. The new code renders the ways. RDK's `GeoLine` component makes this straightforward: map each `Way` to a `GeoLine`, passing the way's `coordinates` along with a `color` and `lineWidth`. This example sets the color to yellow. The line width (in Spherical Mercator units, approximately metres but dependent on latitude) is wider (5) for roads and narrower (2) for paths.
 
 **Note that if you use different colors for different `GeoLine`s, you might currently get flickering Z-fighting artefacts at the points at which they join. You can avoid this by ensuring the lines do not overlap.**
 
@@ -221,9 +221,9 @@ useEffect(() => {
  }, []);
 ```
 
-What is this doing? In order to view our scene more clearly, we need to elevate the camera slightly so it's looking down on our ways. In a real outdoors app you would probably elevate by around 2 metres but here we are elevating it by 10 metres to make it clearer to see if you are testing indoors. Note that inside a React Three Fiber `Canvas` component, you can obtain underlying three.js objects (e.g. the camera) via the `useThree()` hook.
+This elevates the camera so it looks down on the ways, making the scene clearer. A real outdoor app would elevate by around 2 metres; this example uses 10 metres to make the ways easier to see when testing indoors. Inside a React Three Fiber `Canvas` component, underlying three.js objects (such as the camera) are available via the `useThree()` hook.
 
 
-Here is a screenshot on a real device, facing north (I have used a pushpin for the POI to improve the look of the screenshot).
+Here is a screenshot on a real device, facing north (a pushpin is used for the POI to improve the look of the screenshot).
 
 ![Screenshot of tutorial Part 4](/img/rdk/tutorial/part4.png)
