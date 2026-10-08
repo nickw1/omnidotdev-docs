@@ -10,17 +10,17 @@ We will use [Express](https://expressjs.com) as it is one of the most long-stand
 
 ## Setting up the project
 
-We will need to install extra dependencies, namely `express`, `@types/express` and `vite-express` as well as `tsx` : an extension to Node.js to directly execute TypeScript, which we'll neeed to run our server.
+We will need to install extra dependencies, namely `express`, `@types/express` and `vite-express` as well as `tsx` : an extension to Node.js to directly execute TypeScript, which we'll need to run our server.
 
 ```console
-npm i express vite-express tsx
-npm i -D @types/express
+bun add express vite-express tsx
+bun add -d @types/express
 ```
 
 
-### Adding npm scripts
+### Adding scripts
 
-You should modify your `npm` scripts to run `server.ts`, which will be a `vite-express` server:
+You should modify your scripts to run `server.ts`, which will be a `vite-express` server:
 ```json
 "scripts": {
     "dev" : "tsc && tsx server.ts",
@@ -185,7 +185,7 @@ Note also that we now have added ambient and a directional light: if you look at
 Again, use:
 
 ```console
-npm run dev
+bun dev
 ```
 
 You will then be able to access your AR app on `http://localhost:3000`. As the four POIs are north, south, east and west of the initial location, you will need to use a mobile device so you can rotate it round to see the four POIs.  

@@ -10,8 +10,8 @@ In Part 3 we will further enhance our app by retrieving the points of interest f
 We will need to install extra dependencies, namely `better-sqlite3` and `@types/better-sqlite3`:
 
 ```console
-npm i better-sqlite3 
-npm i -D @types/better-sqlite3
+bun add better-sqlite3
+bun add -d @types/better-sqlite3
 ```
 
 ## Populating our database

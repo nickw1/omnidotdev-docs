@@ -7,17 +7,17 @@ In part 1 we will cover the absolute basics of an RDK app by creating the "Hello
 
 ## Setting up the project
 
-The first thing you will need to do is create a project with the appropriate dependencies. You can use an IDE, such as VS Code, or pure command line. On the console, install the dependencies with `npm`:
+The first thing you will need to do is create a project with the appropriate dependencies. You can use an IDE, such as VS Code, or pure command line. On the console, install the dependencies with `bun`:
 
 ```console
-npm i @omnidotdev/rdk @react-three/fiber @react-three/xr locar react react-dom three
+bun add @omnidotdev/rdk @react-three/fiber locar react react-dom three
 ```
 
 ```console
-npm i -D @vitejs/plugin-react vite @types/react @types/react-dom @types/three typescript
+bun add -d @vitejs/plugin-react vite @types/react @types/react-dom @types/three typescript
 ```
 
-### Adding npm scripts
+### Adding scripts
 
 Add a `dev` script to your `package.json`:
 
@@ -140,7 +140,7 @@ Within the `GeolocationAnchor` we then specify whatever mesh, or group of meshes
 We are using Vite as a development server. To run it, run the appropriate script:
 
 ```console
-npm run dev
+bun dev
 ```
 
 You will then be able to access your AR Hello World app on `http://localhost:5173`. You should see a red box in front of you. On a desktop or laptop this will be static in the middle of the screen, but on a mobile device it should only be visible if you point the device north.
