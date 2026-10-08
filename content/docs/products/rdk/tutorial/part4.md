@@ -25,40 +25,50 @@ INSERT INTO way_points(wayid, lat, lon) VALUES (3, 51.05, -0.719), (3, 51.05, -0
 First we will enhance our server so that it now serves ways as well as points. Some logic is required in the `map` endpoint to ensure that the JSON returned to the client contains an array of ways from the array of individual way points stored in the `way_points` table.
 
 ```typescript
-import express from 'express';
-import ViteExpress from 'vite-express';
-import BetterSqlite3 from 'better-sqlite3';
+import { Elysia } from 'elysia';
+import { staticPlugin } from '@elysiajs/static';
+import { Database } from 'bun:sqlite';
 import type Way from './types/way';
 import type JsonWayPoint from './types/jsonWayPoint';
 
 const PORT = 3000;
+const isProd = process.env.NODE_ENV === 'production';
 
-const app = express();
+const db = new Database("pointsofinterest.db");
 
-const db = new BetterSqlite3("pointsofinterest.db");
+const app = new Elysia()
+    .get('/map', ({ set }) => {
+        try {
+            const pois = db.query("SELECT * FROM pointsofinterest").all();
+            const wayPoints = db.query("SELECT w.id, w.type, wp.lat, wp.lon FROM ways w INNER JOIN way_points wp ON w.id = wp.wayid ORDER BY w.id, wp.id").all() as JsonWayPoint[];
+            const ways = new Array<Way>();
+            wayPoints.forEach((wayPt, index) => {
+                if (index === 0 || wayPoints[index].id !== wayPoints[index - 1].id) {
+                    ways.push({ id: wayPt.id, type: wayPt.type, coordinates: [[wayPt.lon, wayPt.lat, 0]] });
+                } else {
+                    ways[ways.length - 1].coordinates.push([wayPt.lon, wayPt.lat, 0]);
+                }
+            });
+            return { pois, ways };
+        } catch (e) {
+            set.status = 500;
+            return { error: "Error querying database" };
+        }
+    });
 
-app.get('/map', (req, res) => {
-    try {
-        const stmt = db.prepare("SELECT * FROM pointsofinterest");
-        const pois = stmt.all();
-        const stmt2 = db.prepare("SELECT w.id, w.type, wp.lat, wp.lon FROM ways w INNER JOIN way_points wp ON w.id = wp.wayid ORDER BY w.id, wp.id");
-        const wayPoints = stmt2.all() as JsonWayPoint[];
-        const ways = new Array<Way>();
-        wayPoints.forEach((wayPt, index) =>  {
-            if(index == 0 || wayPoints[index].id != wayPoints[index-1].id) {
-                ways.push({id: wayPt.id, type: wayPt.type, coordinates: [[wayPt.lon, wayPt.lat, 0]]});
-            } else {
-                ways[ways.length - 1].coordinates.push([wayPt.lon, wayPt.lat, 0]);
-            }
-        });
-        res.send({pois, ways});
-    } catch(e) {
-        res.status(500).json({error: "Error querying database"});
-    }
-});
+if (isProd) {
+    // in production, serve the built app (bun run build) from dist
+    app.use(staticPlugin({ assets: 'dist', prefix: '/', indexHTML: true }));
+} else {
+    // in development, forward everything except the API to the Vite dev server
+    app.all('/*', ({ request }) => {
+        const url = new URL(request.url);
+        return fetch(new Request(`http://localhost:5173${url.pathname}${url.search}`, request));
+    });
+}
 
-ViteExpress.listen(app, PORT, () => {
-    console.log(`Server running on port ${PORT}.`);
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
 ```
 

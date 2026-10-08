@@ -5,25 +5,26 @@ description: Extend the app to fetch points of interest from a server API instea
 
 In Part 2 we will start to make our app a bit more useful by connecting to a server and retrieving some hard-coded POIs from an API. For now, these will not be stored in a database, but we will come back to that in Part 3.
 
-We will use [Express](https://expressjs.com) as it is one of the most long-standing server frameworks for Node.js and familiar to many. We will use it together with Vite allowing us to take advantage of Vite's development server: we can do this with [vite-express](https://github.com/szymmis/vite-express).
-
+We will use [Elysia](https://elysiajs.com), the Omni standard server framework, running on [Bun](https://bun.sh). Bun executes TypeScript directly, so no separate compile step or TypeScript loader is needed. In development we put Elysia in front of Vite's dev server: a single server on port 3000 serves both the API and, by proxying everything else to Vite, the app itself (with hot module reloading intact).
 
 ## Setting up the project
 
-We will need to install extra dependencies, namely `express`, `@types/express` and `vite-express` as well as `tsx` : an extension to Node.js to directly execute TypeScript, which we'll need to run our server.
+We need two dependencies: `elysia` itself, and `@elysiajs/static` to serve the built app in production. We also add `concurrently` as a dev dependency so a single command can run the Vite dev server and the Elysia server together.
 
 ```console
-bun add express vite-express tsx
-bun add -d @types/express
+bun add elysia @elysiajs/static
+bun add -d concurrently
 ```
-
 
 ### Adding scripts
 
-You should modify your scripts to run `server.ts`, which will be a `vite-express` server:
+Replace your `dev` script so it runs both Vite and the Elysia server (`server.ts`), and add `build` and `start` scripts for production:
+
 ```json
 "scripts": {
-    "dev" : "tsc && tsx server.ts",
+    "dev": "concurrently \"vite\" \"bun --watch server.ts\"",
+    "build": "vite build",
+    "start": "NODE_ENV=production bun server.ts"
 }
 ```
 
@@ -37,17 +38,34 @@ Ensure you add `server.ts` to the list of files to be type-checked:
 }
 ```
 
+### Updating the Vite config
+
+Because the browser now talks to our Elysia server (port 3000), which proxies through to Vite, Vite's hot-module-reload client needs to be told to connect straight to Vite's own port. Update `vite.config.mjs`:
+
+```javascript
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+    plugins: [react()],
+    server: {
+        // the Elysia server proxies to Vite, but HMR needs a direct WebSocket to
+        // Vite itself, so point the HMR client straight at Vite's port
+        hmr: { clientPort: 5173 }
+    }
+});
+```
+
 ## Coding our server
 
-Here is a simple Express server which will deliver JSON containing four hard-coded points of interest in response to the `/map` endpoint: 
+Here is a simple Elysia server which will deliver JSON containing four hard-coded points of interest in response to the `/map` endpoint: 
 
 ```typescript
-import express from 'express';
-import ViteExpress from 'vite-express';
+import { Elysia } from 'elysia';
+import { staticPlugin } from '@elysiajs/static';
 
 const PORT = 3000;
-
-const app = express();
+const isProd = process.env.NODE_ENV === 'production';
 
 const pois = [
     {
@@ -80,16 +98,26 @@ const pois = [
     }
 ];
 
-app.get('/map', (req, res) => {
-    res.send(pois);
-});
+const app = new Elysia()
+    .get('/map', () => pois);
 
-ViteExpress.listen(app, PORT, () => {
-    console.log(`Server running on port ${PORT}.`);
+if (isProd) {
+    // in production, serve the built app (bun run build) from dist
+    app.use(staticPlugin({ assets: 'dist', prefix: '/', indexHTML: true }));
+} else {
+    // in development, forward everything except the API to the Vite dev server
+    app.all('/*', ({ request }) => {
+        const url = new URL(request.url);
+        return fetch(new Request(`http://localhost:5173${url.pathname}${url.search}`, request));
+    });
+}
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
 ```
 
-We set up a `/map` endpoint and deliver the data back as JSON. Note how we use `ViteExpress.listen()` to start the server, passing in the Express `app` object as the first argument.
+We set up a `/map` endpoint and return the POIs: Elysia serialises the array to JSON for us. The server listens on port 3000. In development, any request that is not `/map` is proxied to Vite's dev server, so this single Elysia server delivers both the API and the app; in production the built app is served from `dist` with `@elysiajs/static`.
 
 For the front end, rather than using boxes we'll make it a bit more interesting by creating a simple "model" resembling a typical "pushpin" marker. It's a bit rough and ready but it'll do to illustrate the concept. Note how it's a compound of a cone (for the marker's base), a sphere (for the marker's head) and a smaller black sphere (for the "dot").
 

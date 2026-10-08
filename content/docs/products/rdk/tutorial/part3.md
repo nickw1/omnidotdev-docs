@@ -7,12 +7,7 @@ In Part 3 we will further enhance our app by retrieving the points of interest f
 
 ## Setting up the project
 
-We will need to install extra dependencies, namely `better-sqlite3` and `@types/better-sqlite3`:
-
-```console
-bun add better-sqlite3
-bun add -d @types/better-sqlite3
-```
+SQLite support is built into Bun through the `bun:sqlite` module, so there are no extra dependencies to install for this part.
 
 ## Populating our database
 
@@ -37,36 +32,46 @@ INSERT INTO pointsofinterest (name, type, lat, lon) VALUES
  ('Village Stores', 'shop', 51.05, -0.719)
 ```
 
-Here is a modified version of our Express server which will deliver JSON containing the data from the database: 
+Here is a modified version of our Elysia server which will deliver JSON containing the data from the database: 
 
 
 ```typescript
-import express from 'express';
-import ViteExpress from 'vite-express';
-import BetterSqlite3 from 'better-sqlite3';
+import { Elysia } from 'elysia';
+import { staticPlugin } from '@elysiajs/static';
+import { Database } from 'bun:sqlite';
 
 const PORT = 3000;
+const isProd = process.env.NODE_ENV === 'production';
 
-const app = express();
+const db = new Database("pointsofinterest.db");
 
-const db = new BetterSqlite3("pointsofinterest.db");
+const app = new Elysia()
+    .get('/map', ({ set }) => {
+        try {
+            return db.query("SELECT * FROM pointsofinterest").all();
+        } catch (e) {
+            set.status = 500;
+            return { error: "Error querying database" };
+        }
+    });
 
-app.get('/map', (req, res) => {
-    try {
-        const stmt = db.prepare("SELECT * FROM pointsofinterest");
-        const pois = stmt.all();
-        res.send(pois);
-    } catch(e) {
-        res.status(500).json({error: "Error querying database"});
-    }
-});
+if (isProd) {
+    // in production, serve the built app (bun run build) from dist
+    app.use(staticPlugin({ assets: 'dist', prefix: '/', indexHTML: true }));
+} else {
+    // in development, forward everything except the API to the Vite dev server
+    app.all('/*', ({ request }) => {
+        const url = new URL(request.url);
+        return fetch(new Request(`http://localhost:5173${url.pathname}${url.search}`, request));
+    });
+}
 
-ViteExpress.listen(app, PORT, () => {
-    console.log(`Server running on port ${PORT}.`);
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
 ```
 
-This is creating a prepared statement using the `better-sqlite3` API, retrieving all points of interest from the database. We then execute the prepared statement and send all the POIs back to the client as JSON.
+This uses Bun's built-in `bun:sqlite` API to query all points of interest from the database and return them to the client as JSON. If the query fails, we respond with a 500 status and an error message.
 
 ### Making it more realistic with different "models" for different POI types
 
@@ -257,6 +262,6 @@ Here is a screenshot on a real device, facing north:
 
 ### For you to try
 
-Try adding a query string (use `req.query` to read) to your API endpoint, specifying a `bbox` (bounding box). This should take a comma-separated list of the west, south, east and north bounds of a geographical box. Modify the database query to find only points of interest within the bounding box.
+Try adding a query string (read it from Elysia's `query` context property) to your API endpoint, specifying a `bbox` (bounding box). This should take a comma-separated list of the west, south, east and north bounds of a geographical box. Modify the database query to find only points of interest within the bounding box.
 
 Once you have finished go on to [Part 4](/products/rdk/tutorial/part4).
