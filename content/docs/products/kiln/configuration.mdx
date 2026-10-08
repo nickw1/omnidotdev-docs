@@ -1,0 +1,58 @@
+---
+title: Configuration
+description: Pin what detection cannot infer with kiln.json or kiln.toml
+---
+
+Kiln is zero-config by default. When you need to override or pin something
+detection cannot infer, drop a `kiln.json` (or `kiln.toml`) in the project root.
+Every field is optional, and an explicit CLI flag always wins over the file.
+
+```json title="kiln.json"
+{
+  "provider": "node",
+  "version": "22",
+  "package_manager": "pnpm",
+  "install_command": "pnpm install --prod",
+  "build_command": "pnpm build",
+  "start_command": "node dist/main.js",
+  "port": 8080,
+  "env": { "NODE_ENV": "production" }
+}
+```
+
+## Fields
+
+| Field | Purpose |
+| --- | --- |
+| `provider` | Force a provider instead of auto-detecting (e.g. `node`, `go`, `python`) |
+| `version` | Runtime version for the base image, when the provider supports it |
+| `package_manager` | Force a package manager (e.g. `npm`, `pnpm`, `yarn`, `bun`) |
+| `install_command` | Replace the dependency-install command |
+| `build_command` | Replace the build command (also forces a build stage) |
+| `start_command` | Replace the runtime start command |
+| `port` | Port the application listens on |
+| `env` | Environment variables to set in the runtime image |
+
+Run `kiln schema` to print the full JSON schema for editor autocompletion and
+validation.
+
+## Runtime versions
+
+The runtime version for the base image can come from three places, in order of
+precedence:
+
+1. The `version` field in `kiln.json` / `kiln.toml`
+2. A version file in the project: `.nvmrc` / `.node-version` (Node), the `go`
+   directive in `go.mod` (Go), `.python-version` (Python), `.ruby-version`
+   (Ruby)
+3. The provider default
+
+Version selection is supported for Node, Go, Python, Ruby, and Rust. For
+example, a `.nvmrc` of `20` builds on `node:20`, and `{"version": "3.12"}` in a
+Python project builds on `python:3.12-slim`.
+
+## Precedence
+
+For any given setting the order is: **CLI flag → config file → auto-detection →
+default**. This keeps a project zero-config while letting a flag override the
+file for a one-off build.
